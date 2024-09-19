@@ -1,0 +1,420 @@
+package ton_test
+
+import (
+	"context"
+	"crypto/ed25519"
+	"encoding/base64"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"math/big"
+	"os"
+	"testing"
+
+	"github.com/duolacloud/micro/grpc/client"
+	pb_kms "github.com/openweb3-io/blockchain/generated/kms"
+	"github.com/openweb3-io/blockchain/transfer"
+	"github.com/openweb3-io/blockchain/transfer/ton"
+	"github.com/openweb3-io/blockchain/transfer/ton/api"
+	"github.com/openweb3-io/blockchain/transfer/types"
+	"github.com/tonkeeper/tonapi-go"
+	"github.com/xssnick/tonutils-go/liteclient"
+	_ton "github.com/xssnick/tonutils-go/ton"
+	"github.com/xssnick/tonutils-go/ton/wallet"
+	"go.uber.org/zap"
+)
+
+func TestCreateWalletV2(t *testing.T) {
+	seed := wallet.NewSeed()
+
+	fmt.Printf("seed: %v\n", seed)
+
+	w, err := wallet.FromSeed(nil, seed, wallet.V4R2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("address: %s\n", w.Address().String())
+}
+
+var localSignerCreator = func() (transfer.Signer, error) {
+	seed := []string{"woman", "host", "tornado", "slam", "blush", "copper", "artefact", "scan", "enter", "pioneer", "giraffe", "jar", "tenant", "alert", "divert", "figure", "deliver", "talent", "endless", "script", "palace", "undo", "destroy", "type"}
+
+	w, err := wallet.FromSeed(nil, seed, wallet.V4R2)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("privateKeyBase64: %s\n", base64.StdEncoding.EncodeToString(w.PrivateKey()))
+
+	publicKey, ok := w.PrivateKey().Public().(ed25519.PublicKey)
+	if !ok {
+		return nil, errors.New("error convert publickey")
+	}
+
+	addr, err := wallet.AddressFromPubKey(publicKey, wallet.V4R2, wallet.DefaultSubwallet)
+	if err != nil {
+		return nil, err
+	}
+
+	// address := "EQConj-vRocfcTh4pxCUyjlUTCcg1KqwbX2UAQIo8Wa45hqk"
+	fmt.Printf("address: %s\n", addr.String())
+
+	return ton.NewLocalSigner(w.PrivateKey()), nil
+}
+
+func TestTranfserV2(t *testing.T) {
+	logger, _ := zap.NewDevelopment()
+	ctx := context.Background()
+	address := os.Getenv("KMS_SIGNER_ADDRESS")
+
+	kmsGrpcConn, err := client.Dial(ctx, address,
+		client.WithLoadBalance(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
+
+	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
+	}
+
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+	// signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
+	// signerProvider.Register("ton.0.mainnet", localSignerCreator)
+
+	token := os.Getenv("TON_TOKEN")
+	client, err := tonapi.New(tonapi.WithToken(token))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := liteclient.NewConnectionPool()
+
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	// url := "https://ton.org/global.config.json"
+	// url := "https://ton-transfer.github.io/global.config.json"
+	// url := "https://tonutils.com/ls/free-mainnet-config.json"
+	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lclient := _ton.NewAPIClient(c).WithRetry(10)
+
+	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
+
+	appId := os.Getenv("KMS_SIGNER_APP_ID")
+	fromAddress := "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF"
+	to := "UQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspomk3"
+
+	decimals := 9
+	ratAmount, _ := new(big.Rat).SetString("0.01")
+
+	multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
+	ratResult := new(big.Rat).Mul(ratAmount, new(big.Rat).SetInt(multiplier))
+
+	intAmount := new(big.Int).Div(ratResult.Num(), ratResult.Denom())
+
+	output, err := api.Transfer(ctx, &types.TransferInput{
+		AppId:       appId,
+		FromAddress: fromAddress,
+		ToAddress:   to,
+		Amount:      intAmount,
+		Memo:        "xxxx4",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("tx hash(base64): %v\n", base64.StdEncoding.EncodeToString(output.Hash))
+	fmt.Printf("tx hash(hex): %v\n", hex.EncodeToString(output.Hash))
+}
+
+func TestTonApiV2_EstimateGas(t *testing.T) {
+	ctx := context.Background()
+
+	// init logger
+	logger, _ := zap.NewDevelopment()
+
+	// init signerProvider
+	address := os.Getenv("KMS_SIGNER_ADDRESS")
+	kmsGrpcConn, err := client.Dial(ctx, address,
+		client.WithLoadBalance(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
+	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
+	}
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+
+	token := os.Getenv("TON_TOKEN")
+	client, err := tonapi.New(tonapi.WithToken(token))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := liteclient.NewConnectionPool()
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+
+	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
+
+	appId := os.Getenv("KMS_SIGNER_APP_ID")
+	fromAddress := "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF"
+	toAddress := "UQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspomk3"
+	amount := big.NewInt(10000000) // 0.01 TON
+
+	symbol, amount, err := api.EstimateGas(ctx, &types.TransferInput{
+		AppId:       appId,
+		FromAddress: fromAddress,
+		ToAddress:   toAddress,
+		Amount:      amount,
+		Memo:        "test",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("symbol: %v, amount: %v\n", symbol, amount)
+}
+
+func TestTonApiV2_PrepareTransaction(t *testing.T) {
+	ctx := context.Background()
+
+	// init logger
+	logger, _ := zap.NewDevelopment()
+
+	// init signerProvider
+	address := os.Getenv("KMS_SIGNER_ADDRESS")
+	kmsGrpcConn, err := client.Dial(ctx, address,
+		client.WithLoadBalance(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
+	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
+	}
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+
+	token := os.Getenv("TON_TOKEN")
+	client, err := tonapi.New(tonapi.WithToken(token))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := liteclient.NewConnectionPool()
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+
+	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
+
+	// init test data
+	appId := os.Getenv("KMS_SIGNER_APP_ID")
+	fromAddress := "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF"
+	toAddress := "UQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspomk3"
+	amount := big.NewInt(10000000) // 0.01 TON
+
+	// call PrepareTransaction method
+	message, err := api.PrepareTransaction(ctx, &types.TransferInput{
+		AppId:       appId,
+		FromAddress: fromAddress,
+		ToAddress:   toAddress,
+		Amount:      amount,
+		Memo:        "test",
+	})
+
+	// check result
+	if err != nil {
+		t.Fatalf("PrepareTransaction failed: %v", err)
+	}
+
+	if message == nil {
+		t.Fatal("PrepareTransaction returned message is nil")
+	}
+
+	if len(message.Hash) == 0 {
+		t.Error("transaction hash is empty")
+	}
+
+	if len(message.Payload) == 0 {
+		t.Error("transaction payload is empty")
+	}
+
+	// print result for further inspection
+	t.Logf("transaction hash(hex): %v", hex.EncodeToString(message.Hash))
+	t.Logf("transaction payload length: %d", len(message.Payload))
+}
+
+func TestTonApiV2_PrepareJettonTransaction(t *testing.T) {
+	ctx := context.Background()
+
+	// init logger
+	logger, _ := zap.NewDevelopment()
+
+	// init signerProvider
+	address := os.Getenv("KMS_SIGNER_ADDRESS")
+	kmsGrpcConn, err := client.Dial(ctx, address,
+		client.WithLoadBalance(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
+	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
+	}
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+
+	token := os.Getenv("TON_TOKEN")
+	client, err := tonapi.New(tonapi.WithToken(token))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := liteclient.NewConnectionPool()
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+
+	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
+
+	// init test data
+	appId := os.Getenv("KMS_SIGNER_APP_ID")
+	contractAddress := "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+	fromAddress := "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF"
+	toAddress := "UQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspomk3"
+	amount := big.NewInt(100000) // 0.1 USDT
+
+	// call PrepareTransaction method
+	message, err := api.PrepareTransaction(ctx, &types.TransferInput{
+		AppId:           appId,
+		ContractAddress: contractAddress,
+		FromAddress:     fromAddress,
+		ToAddress:       toAddress,
+		Amount:          amount,
+		Memo:            "test jetton",
+		Token:           "USDT",
+		TokenDecimals:   6,
+	})
+
+	// check result
+	if err != nil {
+		t.Fatalf("PrepareTransaction failed: %v", err)
+	}
+
+	if message == nil {
+		t.Fatal("PrepareTransaction returned message is nil")
+	}
+
+	if len(message.Hash) == 0 {
+		t.Error("transaction hash is empty")
+	}
+
+	if len(message.Payload) == 0 {
+		t.Error("transaction payload is empty")
+	}
+
+	// print result for further inspection
+	t.Logf("transaction hash(hex): %v", hex.EncodeToString(message.Hash))
+	t.Logf("transaction payload length: %d", len(message.Payload))
+}
+
+func TestTonApiV2_JettonTransfer(t *testing.T) {
+	ctx := context.Background()
+
+	// init logger
+	logger, _ := zap.NewDevelopment()
+
+	// init signerProvider
+	address := os.Getenv("KMS_SIGNER_ADDRESS")
+	kmsGrpcConn, err := client.Dial(ctx, address,
+		client.WithLoadBalance(),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
+	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
+	}
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+
+	token := os.Getenv("TON_TOKEN")
+	client, err := tonapi.New(tonapi.WithToken(token))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := liteclient.NewConnectionPool()
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+
+	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
+
+	// init test data
+	appId := os.Getenv("KMS_SIGNER_APP_ID")
+	contractAddress := "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+	fromAddress := "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF"
+	toAddress := "UQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspomk3"
+	amount := big.NewInt(100000) // 0.1 USDT
+
+	// call PrepareTransaction method
+	message, err := api.PrepareTransaction(ctx, &types.TransferInput{
+		AppId:           appId,
+		ContractAddress: contractAddress,
+		FromAddress:     fromAddress,
+		ToAddress:       toAddress,
+		Amount:          amount,
+		Memo:            "usdt-ton",
+		Token:           "USDT",
+		TokenDecimals:   6,
+	})
+
+	// check result
+	if err != nil {
+		t.Fatalf("PrepareTransaction failed: %v", err)
+	}
+
+	if message == nil {
+		t.Fatal("PrepareTransaction returned message is nil")
+	}
+
+	if len(message.Hash) == 0 {
+		t.Error("transaction hash is empty")
+	}
+
+	if len(message.Payload) == 0 {
+		t.Error("transaction payload is empty")
+	}
+
+	// print result for further inspection
+	logger.Sugar().Infof("transaction hash(hex): %v", hex.EncodeToString(message.Hash))
+	logger.Sugar().Infof("transaction payload length: %d", len(message.Payload))
+
+	err = api.BroadcastTransaction(ctx, message)
+	if err != nil {
+		t.Fatalf("BroadcastTransaction failed: %v", err)
+	}
+}
