@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
 	"testing"
 
-	"github.com/duolacloud/micro/grpc/client"
 	"github.com/joho/godotenv"
 	_ton "github.com/xssnick/tonutils-go/ton"
 
-	pb_kms "github.com/openweb3-io/blockchain/generated/kms"
 	"github.com/openweb3-io/blockchain/transfer"
 	"github.com/openweb3-io/blockchain/transfer/ton"
 	"github.com/openweb3-io/blockchain/transfer/types"
@@ -40,25 +39,10 @@ func TestCreateWallet(t *testing.T) {
 
 func TestTranfser(t *testing.T) {
 	ctx := context.Background()
-	address := os.Getenv("KMS_SIGNER_ADDRESS")
 
-	kmsGrpcConn, err := client.Dial(ctx, address,
-		client.WithLoadBalance(),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
-
-	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
-	}
-
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
-
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
 	signerProvider.Register("ton.0.mainnet", func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		seed := []string{"woman", "host", "tornado", "slam", "blush", "copper", "artefact", "scan", "enter", "pioneer", "giraffe", "jar", "tenant", "alert", "divert", "figure", "deliver", "talent", "endless", "script", "palace", "undo", "destroy", "type"}
+		seed := strings.Split(os.Getenv("WALLET_SEED"), " ")
 
 		w, err := wallet.FromSeed(nil, seed, wallet.V4R2)
 		if err != nil {
@@ -92,7 +76,7 @@ func TestTranfser(t *testing.T) {
 	url := "https://ton.org/global.config.json"
 	// url := "https://ton-transfer.github.io/global.config.json"
 	c := liteclient.NewConnectionPool()
-	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	err := c.AddConnectionsFromConfigUrl(context.Background(), url)
 	if err != nil {
 		t.Fatal(err)
 	}

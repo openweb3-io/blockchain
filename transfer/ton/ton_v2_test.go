@@ -9,10 +9,9 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
 	"testing"
 
-	"github.com/duolacloud/micro/grpc/client"
-	pb_kms "github.com/openweb3-io/blockchain/generated/kms"
 	"github.com/openweb3-io/blockchain/transfer"
 	"github.com/openweb3-io/blockchain/transfer/ton"
 	"github.com/openweb3-io/blockchain/transfer/ton/api"
@@ -37,8 +36,8 @@ func TestCreateWalletV2(t *testing.T) {
 	fmt.Printf("address: %s\n", w.Address().String())
 }
 
-var localSignerCreator = func() (transfer.Signer, error) {
-	seed := []string{"woman", "host", "tornado", "slam", "blush", "copper", "artefact", "scan", "enter", "pioneer", "giraffe", "jar", "tenant", "alert", "divert", "figure", "deliver", "talent", "endless", "script", "palace", "undo", "destroy", "type"}
+var localSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+	seed := strings.Split(os.Getenv("WALLET_SEED"), " ")
 
 	w, err := wallet.FromSeed(nil, seed, wallet.V4R2)
 	if err != nil {
@@ -66,24 +65,8 @@ var localSignerCreator = func() (transfer.Signer, error) {
 func TestTranfserV2(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 	ctx := context.Background()
-	address := os.Getenv("KMS_SIGNER_ADDRESS")
 
-	kmsGrpcConn, err := client.Dial(ctx, address,
-		client.WithLoadBalance(),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
-
-	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
-	}
-
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
-	// signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
-	// signerProvider.Register("ton.0.mainnet", localSignerCreator)
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
 
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
@@ -138,19 +121,7 @@ func TestTonApiV2_EstimateGas(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	// init signerProvider
-	address := os.Getenv("KMS_SIGNER_ADDRESS")
-	kmsGrpcConn, err := client.Dial(ctx, address,
-		client.WithLoadBalance(),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
-	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
-	}
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
 
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
@@ -193,19 +164,7 @@ func TestTonApiV2_PrepareTransaction(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	// init signerProvider
-	address := os.Getenv("KMS_SIGNER_ADDRESS")
-	kmsGrpcConn, err := client.Dial(ctx, address,
-		client.WithLoadBalance(),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
-	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
-	}
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
 
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
@@ -266,20 +225,7 @@ func TestTonApiV2_PrepareJettonTransaction(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	// init signerProvider
-	address := os.Getenv("KMS_SIGNER_ADDRESS")
-	kmsGrpcConn, err := client.Dial(ctx, address,
-		client.WithLoadBalance(),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
-	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
-	}
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
-
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
 	if err != nil {
@@ -343,20 +289,7 @@ func TestTonApiV2_JettonTransfer(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	// init signerProvider
-	address := os.Getenv("KMS_SIGNER_ADDRESS")
-	kmsGrpcConn, err := client.Dial(ctx, address,
-		client.WithLoadBalance(),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	kmsGrpcClient := pb_kms.NewKmsServiceClient(kmsGrpcConn)
-	var kmsSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
-		return transfer.NewKmsSigner(kmsGrpcClient, appId, key), nil
-	}
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(kmsSignerCreator))
-
+	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
 	if err != nil {
