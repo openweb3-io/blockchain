@@ -3,8 +3,7 @@ package contract
 import (
 	"errors"
 
-	"github.com/openweb3-io/blockchain/transfer/evm/contract/erc20"
-	"github.com/openweb3-io/blockchain/transfer/evm/contract/types"
+	"github.com/openweb3-io/blockchain/api/ton/contract/types"
 )
 
 var (
@@ -12,7 +11,7 @@ var (
 )
 
 func init() {
-	Register(&erc20.ERC20USDT{})
+	Register(&TONUSDT{})
 }
 
 func Register(contract types.IContract) {

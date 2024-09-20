@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/openweb3-io/blockchain/transfer"
+	"github.com/openweb3-io/blockchain/api"
 	"github.com/xssnick/tonutils-go/adnl"
 
 	"github.com/xssnick/tonutils-go/ton"
@@ -61,13 +61,13 @@ func (v Version) String() string {
 
 	switch v {
 	case HighloadV2R2:
-		return fmt.Sprintf("highload V2R2")
+		return "highload V2R2"
 	case HighloadV2Verified:
-		return fmt.Sprintf("highload V2R2 verified")
+		return "highload V2R2 verified"
 	}
 
 	if v/100 == 2 {
-		return fmt.Sprintf("lockup")
+		return "lockup"
 	}
 	if v/10 > 0 && v/10 < 10 {
 		return fmt.Sprintf("V%dR%d", v/10, v%10)
@@ -141,7 +141,7 @@ type Message struct {
 type Wallet struct {
 	api    TonAPI
 	key    ed25519.PrivateKey
-	signer transfer.Signer
+	signer api.Signer
 	addr   *address.Address
 	ver    VersionConfig
 
@@ -153,7 +153,7 @@ type Wallet struct {
 	spec any
 }
 
-func FromSigner(ctx context.Context, api TonAPI, signer transfer.Signer, version VersionConfig) (*Wallet, error) {
+func FromSigner(ctx context.Context, api TonAPI, signer api.Signer, version VersionConfig) (*Wallet, error) {
 	var subwallet uint32 = DefaultSubwallet
 
 	// default subwallet depends on wallet type
@@ -709,7 +709,7 @@ func DecryptCommentCell(commentCell *cell.Cell, sender *address.Address, ourKey 
 	return data[data[0]:], nil
 }
 
-func CreateEncryptedCommentCell(ctx context.Context, text string, senderAddr *address.Address, signer transfer.Signer, theirKey ed25519.PublicKey) (*cell.Cell, error) {
+func CreateEncryptedCommentCell(ctx context.Context, text string, senderAddr *address.Address, signer api.Signer, theirKey ed25519.PublicKey) (*cell.Cell, error) {
 	// encrypted comment op code
 	root := cell.BeginCell().MustStoreUInt(EncryptedCommentOpcode, 32)
 

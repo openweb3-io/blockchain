@@ -5,8 +5,8 @@ import (
 	"log"
 	"math/big"
 
-	"github.com/openweb3-io/blockchain/transfer"
-	_types "github.com/openweb3-io/blockchain/transfer/types"
+	"github.com/openweb3-io/blockchain/api"
+	_types "github.com/openweb3-io/blockchain/api/types"
 	"github.com/openweb3-io/solana-go-sdk/client"
 	"github.com/openweb3-io/solana-go-sdk/common"
 	"github.com/openweb3-io/solana-go-sdk/program/system"
@@ -14,12 +14,12 @@ import (
 )
 
 type SolanaApi struct {
-	signerProvider *transfer.SignerProvider
+	signerProvider *api.SignerProvider
 	endpoint       string
 	chainId        *big.Int
 }
 
-func NewSolanaApi(signerProvider *transfer.SignerProvider, endpoint string, chainId *big.Int) *SolanaApi {
+func NewSolanaApi(signerProvider *api.SignerProvider, endpoint string, chainId *big.Int) *SolanaApi {
 	return &SolanaApi{signerProvider, endpoint, chainId}
 }
 

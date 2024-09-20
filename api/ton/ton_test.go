@@ -13,9 +13,9 @@ import (
 	"github.com/joho/godotenv"
 	_ton "github.com/xssnick/tonutils-go/ton"
 
-	"github.com/openweb3-io/blockchain/transfer"
-	"github.com/openweb3-io/blockchain/transfer/ton"
-	"github.com/openweb3-io/blockchain/transfer/types"
+	"github.com/openweb3-io/blockchain/api"
+	"github.com/openweb3-io/blockchain/api/ton"
+	"github.com/openweb3-io/blockchain/api/types"
 	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/ton/wallet"
 )
@@ -40,8 +40,8 @@ func TestCreateWallet(t *testing.T) {
 func TestTranfser(t *testing.T) {
 	ctx := context.Background()
 
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
-	signerProvider.Register("ton.0.mainnet", func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
+	signerProvider.Register("ton.0.mainnet", func(ctx context.Context, appId, key string) (api.Signer, error) {
 		seed := strings.Split(os.Getenv("WALLET_SEED"), " ")
 
 		w, err := wallet.FromSeed(nil, seed, wallet.V4R2)
@@ -74,7 +74,7 @@ func TestTranfser(t *testing.T) {
 	*/
 
 	url := "https://ton.org/global.config.json"
-	// url := "https://ton-transfer.github.io/global.config.json"
+	// url := "https://ton-api.github.io/global.config.json"
 	c := liteclient.NewConnectionPool()
 	err := c.AddConnectionsFromConfigUrl(context.Background(), url)
 	if err != nil {

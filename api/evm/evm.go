@@ -12,9 +12,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/openweb3-io/blockchain/transfer"
-	"github.com/openweb3-io/blockchain/transfer/evm/contract"
-	_types "github.com/openweb3-io/blockchain/transfer/types"
+	transfer "github.com/openweb3-io/blockchain/api"
+	"github.com/openweb3-io/blockchain/api/evm/contract"
+	_types "github.com/openweb3-io/blockchain/api/types"
 )
 
 type EvmApi struct {

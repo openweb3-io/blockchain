@@ -9,9 +9,10 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/openweb3-io/blockchain/transfer"
-	"github.com/openweb3-io/blockchain/transfer/ton/wallet"
-	"github.com/openweb3-io/blockchain/transfer/types"
+	"github.com/openweb3-io/blockchain/api"
+	"github.com/openweb3-io/blockchain/api/evm/contract"
+	"github.com/openweb3-io/blockchain/api/ton/wallet"
+	"github.com/openweb3-io/blockchain/api/types"
 	"github.com/tonkeeper/tonapi-go"
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/tlb"
@@ -22,14 +23,14 @@ import (
 )
 
 type TonApiV2 struct {
-	signerProvider *transfer.SignerProvider
+	signerProvider *api.SignerProvider
 	client         *tonapi.Client
 	lclient        ton.APIClientWrapped
 	logger         *zap.Logger
 }
 
 func NewTonApiV2(
-	signerProvider *transfer.SignerProvider,
+	signerProvider *api.SignerProvider,
 	client *tonapi.Client,
 	lclient ton.APIClientWrapped,
 	logger *zap.Logger,
@@ -355,5 +356,41 @@ func (a *TonApiV2) BroadcastTransaction(ctx context.Context, input *types.Transf
 	a.logger.Info("SendBlockchainMessage succeeded", zap.String("hash", hex.EncodeToString(input.Hash)))
 
 	return nil
+}
 
+func (a *TonApiV2) GetWalletData(ctx context.Context, walletAddress string) (*types.WalletData, error) {
+	st := time.Now()
+	defer func() {
+		a.logger.Info("get wallet data", zap.Duration("cost", time.Since(st)))
+	}()
+
+	block, err := a.lclient.CurrentMasterchainInfo(ctx)
+	if err != nil {
+		a.logger.Error("get master block failed", zap.Error(err))
+		return nil, err
+	}
+
+	addr := address.MustParseAddr(walletAddress)
+	result, err := a.lclient.RunGetMethod(ctx, block, addr, "get_wallet_data")
+	if err != nil {
+		a.logger.Error("run get method failed", zap.Error(err))
+		return nil, err
+	}
+
+	balance := result.MustInt(0)
+	ownerAddr := result.MustSlice(1).MustLoadAddr().String()
+	jettonMasterAddr := result.MustSlice(2).MustLoadAddr().String()
+
+	contr, err := contract.GetByAddress(jettonMasterAddr)
+	if err != nil {
+		a.logger.Error("get contract by address failed", zap.Error(err))
+		return nil, err
+	}
+
+	return &types.WalletData{
+		Balance:             balance,
+		OwnerAddress:        ownerAddr,
+		JettonMasterAddress: jettonMasterAddr,
+		JettonTokenName:     contr.GetTokenName(),
+	}, nil
 }

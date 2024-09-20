@@ -7,16 +7,18 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/openweb3-io/blockchain/transfer"
-	"github.com/openweb3-io/blockchain/transfer/ton"
-	"github.com/openweb3-io/blockchain/transfer/ton/api"
-	"github.com/openweb3-io/blockchain/transfer/types"
+	"github.com/openweb3-io/blockchain/api"
+	"github.com/openweb3-io/blockchain/api/ton"
+	tapi "github.com/openweb3-io/blockchain/api/ton/api"
+	"github.com/openweb3-io/blockchain/api/types"
 	"github.com/tonkeeper/tonapi-go"
+	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/liteclient"
 	_ton "github.com/xssnick/tonutils-go/ton"
 	"github.com/xssnick/tonutils-go/ton/wallet"
@@ -36,7 +38,7 @@ func TestCreateWalletV2(t *testing.T) {
 	fmt.Printf("address: %s\n", w.Address().String())
 }
 
-var localSignerCreator = func(ctx context.Context, appId, key string) (transfer.Signer, error) {
+var localSignerCreator = func(ctx context.Context, appId, key string) (api.Signer, error) {
 	seed := strings.Split(os.Getenv("WALLET_SEED"), " ")
 
 	w, err := wallet.FromSeed(nil, seed, wallet.V4R2)
@@ -66,7 +68,7 @@ func TestTranfserV2(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 	ctx := context.Background()
 
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
 
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
@@ -78,7 +80,7 @@ func TestTranfserV2(t *testing.T) {
 
 	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
 	// url := "https://ton.org/global.config.json"
-	// url := "https://ton-transfer.github.io/global.config.json"
+	// url := "https://ton-api.github.io/global.config.json"
 	// url := "https://tonutils.com/ls/free-mainnet-config.json"
 	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
 	if err != nil {
@@ -121,7 +123,7 @@ func TestTonApiV2_EstimateGas(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
 
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
@@ -135,7 +137,7 @@ func TestTonApiV2_EstimateGas(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+	lclient := _ton.NewAPIClient(tapi.WrapWithRetry(c, 10))
 
 	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
 
@@ -164,7 +166,7 @@ func TestTonApiV2_PrepareTransaction(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
 
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
@@ -178,7 +180,7 @@ func TestTonApiV2_PrepareTransaction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+	lclient := _ton.NewAPIClient(tapi.WrapWithRetry(c, 10))
 
 	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
 
@@ -225,7 +227,7 @@ func TestTonApiV2_PrepareJettonTransaction(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
 	if err != nil {
@@ -238,7 +240,7 @@ func TestTonApiV2_PrepareJettonTransaction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+	lclient := _ton.NewAPIClient(tapi.WrapWithRetry(c, 10))
 
 	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
 
@@ -289,7 +291,7 @@ func TestTonApiV2_JettonTransfer(t *testing.T) {
 	// init logger
 	logger, _ := zap.NewDevelopment()
 
-	signerProvider := transfer.NewSignerProvider(transfer.WithFailoverSignerCreator(localSignerCreator))
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
 	token := os.Getenv("TON_TOKEN")
 	client, err := tonapi.New(tonapi.WithToken(token))
 	if err != nil {
@@ -302,7 +304,7 @@ func TestTonApiV2_JettonTransfer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lclient := _ton.NewAPIClient(api.WrapWithRetry(c, 10))
+	lclient := _ton.NewAPIClient(tapi.WrapWithRetry(c, 10))
 
 	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
 
@@ -350,4 +352,40 @@ func TestTonApiV2_JettonTransfer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("BroadcastTransaction failed: %v", err)
 	}
+}
+
+func TestRunGetMethod(t *testing.T) {
+
+	c := liteclient.NewConnectionPool()
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	err := c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 创建API客户端
+	api := _ton.NewAPIClient(c)
+
+	// 解析钱包地址
+	addr := address.MustParseAddr("UQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNclA")
+
+	block, err := api.CurrentMasterchainInfo(context.Background())
+	if err != nil {
+		log.Fatalf("获取当前主链信息失败: %v", err)
+	}
+	// 调用get_wallet_data方法
+	result, err := api.RunGetMethod(context.Background(), block, addr, "get_wallet_data")
+	if err != nil {
+		log.Fatalf("调用方法失败: %v", err)
+	}
+
+	// 解析结果
+	balance := result.MustInt(0)
+	ownerAddr := result.MustSlice(1)
+	jettonMasterAddr := result.MustSlice(2)
+	// jettonWalletCode := result.MustCell(3) // 如果需要处理代码单元格
+
+	fmt.Printf("余额: %d\n", balance)
+	fmt.Printf("所有者地址: %s\n", ownerAddr.MustLoadAddr().String())
+	fmt.Printf("Jetton主合约地址: %s\n", jettonMasterAddr.MustLoadAddr().String())
 }

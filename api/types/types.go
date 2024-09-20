@@ -40,3 +40,10 @@ type TransferMessage struct {
 	Hash    []byte
 	Payload []byte
 }
+
+type WalletData struct {
+	Balance             *big.Int
+	OwnerAddress        string
+	JettonMasterAddress string
+	JettonTokenName     string
+}

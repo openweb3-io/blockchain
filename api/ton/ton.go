@@ -5,20 +5,20 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/openweb3-io/blockchain/transfer"
-	"github.com/openweb3-io/blockchain/transfer/ton/wallet"
-	"github.com/openweb3-io/blockchain/transfer/types"
+	"github.com/openweb3-io/blockchain/api"
+	"github.com/openweb3-io/blockchain/api/ton/wallet"
+	"github.com/openweb3-io/blockchain/api/types"
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/tlb"
 	"github.com/xssnick/tonutils-go/ton"
 )
 
 type TonApi struct {
-	signerProvider *transfer.SignerProvider
+	signerProvider *api.SignerProvider
 	client         ton.APIClientWrapped
 }
 
-func NewTonApi(signerProvider *transfer.SignerProvider, client ton.APIClientWrapped) *TonApi {
+func NewTonApi(signerProvider *api.SignerProvider, client ton.APIClientWrapped) *TonApi {
 	return &TonApi{signerProvider, client}
 }
 
