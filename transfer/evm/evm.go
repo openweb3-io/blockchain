@@ -46,8 +46,19 @@ func NewEvmApi(
 	}
 }
 
-func (a *EvmApi) EstimateGas(ctx context.Context, input *_types.TransferInput) (*big.Int, error) {
-	return new(big.Int), nil
+func (a *EvmApi) EstimateGas(ctx context.Context, input *_types.TransferInput) (_types.TokenSymbol, *big.Int, error) {
+	// TODO implement
+	return _types.TOKEN_TYPE_NONE, nil, nil
+}
+
+func (a *EvmApi) PrepareTransaction(ctx context.Context, input *_types.TransferInput) (*_types.TransferMessage, error) {
+	// TODO implement
+	return nil, nil
+}
+
+func (a *EvmApi) BroadcastTransaction(ctx context.Context, input *_types.TransferMessage) error {
+	// TODO implement
+	return nil
 }
 
 func (a *EvmApi) Transfer(ctx context.Context, input *_types.TransferInput) (*_types.TransferOutput, error) {

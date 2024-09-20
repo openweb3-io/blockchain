@@ -23,8 +23,19 @@ func NewSolanaApi(signerProvider *transfer.SignerProvider, endpoint string, chai
 	return &SolanaApi{signerProvider, endpoint, chainId}
 }
 
-func (a *SolanaApi) EstimateGas(ctx context.Context, input *_types.TransferInput) (*big.Int, error) {
-	return new(big.Int), nil
+func (a *SolanaApi) EstimateGas(ctx context.Context, input *_types.TransferInput) (_types.TokenSymbol, *big.Int, error) {
+	// TODO implement
+	return _types.TOKEN_TYPE_NONE, nil, nil
+}
+
+func (a *SolanaApi) PrepareTransaction(ctx context.Context, input *_types.TransferInput) (*_types.TransferMessage, error) {
+	// TODO implement
+	return nil, nil
+}
+
+func (a *SolanaApi) BroadcastTransaction(ctx context.Context, input *_types.TransferMessage) error {
+	// TODO implement
+	return nil
 }
 
 func (a *SolanaApi) Transfer(ctx context.Context, input *_types.TransferInput) (*_types.TransferMessage, error) {
