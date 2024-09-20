@@ -38,6 +38,11 @@ func (a *SolanaApi) BroadcastTransaction(ctx context.Context, input *_types.Tran
 	return nil
 }
 
+func (a *SolanaApi) GetWalletData(ctx context.Context, address string) (*_types.WalletData, error) {
+	// TODO implement
+	return nil, nil
+}
+
 func (a *SolanaApi) Transfer(ctx context.Context, input *_types.TransferInput) (*_types.TransferMessage, error) {
 	client := client.NewClient(a.endpoint)
 

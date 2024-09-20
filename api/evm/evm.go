@@ -61,6 +61,11 @@ func (a *EvmApi) BroadcastTransaction(ctx context.Context, input *_types.Transfe
 	return nil
 }
 
+func (a *EvmApi) GetWalletData(ctx context.Context, address string) (*_types.WalletData, error) {
+	// TODO implement
+	return nil, nil
+}
+
 func (a *EvmApi) Transfer(ctx context.Context, input *_types.TransferInput) (*_types.TransferOutput, error) {
 	client, err := ethclient.Dial(a.endpoint)
 	if err != nil {
