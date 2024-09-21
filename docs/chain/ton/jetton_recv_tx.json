@@ -1,0 +1,91 @@
+{
+    "hash": "cb2ff53173a32856ef30037e461d9fe45bd0887ea5605b0e977a2b324c339289",
+    "lt": 49315603000001,
+    "account": {
+        "address": "0:9ca225e1f9fdea8dcdbe4038cb8775e6c223599aa45dda5e485fefe5a0db29a2",
+        "is_scam": false,
+        "is_wallet": true
+    },
+    "success": true,
+    "utime": 1726813368,
+    "orig_status": "active",
+    "end_status": "active",
+    "total_fees": 40260,
+    "end_balance": 40934305,
+    "transaction_type": "TransOrd",
+    "state_update_old": "41d84e4de9c1335e5560029ce8cade12548a6bcd2f04ac289d282b0e3bda13f3",
+    "state_update_new": "7d608a000aa32d2541a6f9b0336d27ad6d3c8ecea286e7ee218a5a5468773006",
+    "in_msg": {
+        "msg_type": "int_msg",
+        "created_lt": 49315599000004,
+        "ihr_disabled": true,
+        "bounce": false,
+        "bounced": false,
+        "value": 10000000,
+        "fwd_fee": 483204,
+        "ihr_fee": 0,
+        "destination": {
+            "address": "0:9ca225e1f9fdea8dcdbe4038cb8775e6c223599aa45dda5e485fefe5a0db29a2",
+            "is_scam": false,
+            "is_wallet": true
+        },
+        "source": {
+            "address": "0:6a4ba63430e96256a700362e487df76a2c2b2aeec5822c349fbc7663e7cc979c",
+            "is_scam": false,
+            "is_wallet": false
+        },
+        "import_fee": 0,
+        "created_at": 1726813358,
+        "op_code": "0x7362d09c",
+        "hash": "4fd7b0ffdb201d59a0de818eaf2485c7c61f715f6efeb07705b0084ef9288186",
+        "raw_body": "b5ee9c7201010101005b0000b27362d09c5093a5d5564a28ef30186a080131549eeff9683fc581dc9a126993f32749202385e25febc1ed28ed735b06cc6a0000000035316631613830622d323033612d343035302d613338662d313238626637653938616533",
+        "decoded_op_name": "jetton_notify",
+        "decoded_body": {
+            "query_id": 5806166680305019119,
+            "amount": "100000",
+            "sender": "0:98aa4f77fcb41fe2c0ee4d0934c9f993a49011c2f12ff5e0f69476b9ad836635",
+            "forward_payload": {
+                "is_right": false,
+                "value": {
+                    "sum_type": "TextComment",
+                    "op_code": 0,
+                    "value": {
+                        "text": "51f1a80b-203a-4050-a38f-128bf7e98ae3"
+                    }
+                }
+            }
+        }
+    },
+    "out_msgs": [],
+    "block": "(0,9000000000000000,45770112)",
+    "prev_trans_hash": "4f377b8e4a3dacc9f32b5eea4606e55b2d7a2e0083abf7dfcb2227243248f7e2",
+    "prev_trans_lt": 49313585000003,
+    "compute_phase": {
+        "skipped": false,
+        "success": true,
+        "gas_fees": 40000,
+        "gas_used": 62,
+        "vm_steps": 3,
+        "exit_code": 0,
+        "exit_code_description": "Ok"
+    },
+    "storage_phase": {
+        "fees_collected": 260,
+        "status_change": "acst_unchanged"
+    },
+    "credit_phase": {
+        "fees_collected": 0,
+        "credit": 10000000
+    },
+    "action_phase": {
+        "success": true,
+        "result_code": 0,
+        "total_actions": 0,
+        "skipped_actions": 0,
+        "fwd_fees": 0,
+        "total_fees": 0
+    },
+    "aborted": false,
+    "destroyed": false,
+    "raw": "b5ee9c72010208010001ea0003b379ca225e1f9fdea8dcdbe4038cb8775e6c223599aa45dda5e485fefe5a0db29a200002cda2effaac14f377b8e4a3dacc9f32b5eea4606e55b2d7a2e0083abf7dfcb2227243248f7e200002cd9b6b76e4366ed14b80001453a8880102030101a00400827241d84e4de9c1335e5560029ce8cade12548a6bcd2f04ac289d282b0e3bda13f37d608a000aa32d2541a6f9b0336d27ad6d3c8ecea286e7ee218a5a546877300602150c804108e625a018538811060701af4800d4974c6861d2c4ad4e006c5c90fbeed4585655dd8b0458693f78ecc7cf992f3900272889787e7f7aa3736f900e32e1dd79b088d666a91776979217fbf96836ca688e625a00060ebf08000059b45d854388cdda295cc00500b27362d09c5093a5d5564a28ef30186a080131549eeff9683fc581dc9a126993f32749202385e25febc1ed28ed735b06cc6a0000000035316631613830622d323033612d343035302d613338662d313238626637653938616533009a27c986a000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005bc00000000000000000000000012d452da449e50b8cf7dd27861f146122afe1b546bb8b70fc8216f0c614139f8e04"
+}
