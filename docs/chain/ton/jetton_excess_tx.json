@@ -1,0 +1,81 @@
+{
+    "aborted": false,
+    "account": {
+        "address": "0:98aa4f77fcb41fe2c0ee4d0934c9f993a49011c2f12ff5e0f69476b9ad836635",
+        "is_scam": false,
+        "is_wallet": true
+    },
+    "action_phase": {
+        "fwd_fees": 0,
+        "result_code": 0,
+        "skipped_actions": 0,
+        "success": true,
+        "total_actions": 0,
+        "total_fees": 0
+    },
+    "block": "(0,9000000000000000,45796806)",
+    "compute_phase": {
+        "exit_code": 0,
+        "exit_code_description": "Ok",
+        "gas_fees": 396400,
+        "gas_used": 991,
+        "skipped": false,
+        "success": true,
+        "vm_steps": 29
+    },
+    "credit_phase": {
+        "credit": 36784810,
+        "fees_collected": 0
+    },
+    "destroyed": false,
+    "end_balance": 919987985,
+    "end_status": "active",
+    "hash": "001c625decf4bc3fb85c4f3f04995d332b7400a55e56dbce3dc145d0de9d0967",
+    "in_msg": {
+        "bounce": false,
+        "bounced": false,
+        "created_at": 1726919984,
+        "created_lt": 49346489000003,
+        "decoded_body": {
+            "query_id": 1110847965240686300
+        },
+        "decoded_op_name": "excess",
+        "destination": {
+            "address": "0:98aa4f77fcb41fe2c0ee4d0934c9f993a49011c2f12ff5e0f69476b9ad836635",
+            "is_scam": false,
+            "is_wallet": true
+        },
+        "fwd_fee": 266669,
+        "hash": "83dcd63232da740e5d550959f4c044d2292cf082919f17ff5e20d20747e62379",
+        "ihr_disabled": true,
+        "ihr_fee": 0,
+        "import_fee": 0,
+        "msg_type": "int_msg",
+        "op_code": "0xd53276db",
+        "raw_body": "b5ee9c7201010101000e000018d53276db0f6a8656bfa2f6f1",
+        "source": {
+            "address": "0:6a4ba63430e96256a700362e487df76a2c2b2aeec5822c349fbc7663e7cc979c",
+            "is_scam": false,
+            "is_wallet": false
+        },
+        "value": 36784810
+    },
+    "lt": 49346492000001,
+    "orig_status": "active",
+    "out_msgs": [
+
+    ],
+    "prev_trans_hash": "13afedde405403b70fcbbf6b8d7186ffb8b5ff11836aeae9287de46cf1e60ed1",
+    "prev_trans_lt": 49346480000001,
+    "raw": "b5ee9c720102070100019f0003b5798aa4f77fcb41fe2c0ee4d0934c9f993a49011c2f12ff5e0f69476b9ad83663500002ce16020670113afedde405403b70fcbbf6b8d7186ffb8b5ff11836aeae9287de46cf1e60ed100002ce15f694c0166eeb53d0001460c18f680102030101a004008272a6e914fc7f49c91809e508fcc8f9bee7f99f924f1917902d7842ea3b7965f86dffec50f1c1c6a9a6d00aa2ba5d7283d0a12561f5ec5585792d02272ce20e044802170c42c9008c52aa9860c18e11050600c94800d4974c6861d2c4ad4e006c5c90fbeed4585655dd8b0458693f78ecc7cf992f3900262a93ddff2d07f8b03b93424d327e64e9240470bc4bfd783da51dae6b60d98d5008c52aa80608235a000059c2bfe54086cddd6a606a993b6d87b5432b5fd17b78c0009e407bec059ce800000000000000001d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005bc00000000000000000000000012d452da449e50b8cf7dd27861f146122afe1b546bb8b70fc8216f0c614139f8e04",
+    "state_update_new": "ffec50f1c1c6a9a6d00aa2ba5d7283d0a12561f5ec5585792d02272ce20e0448",
+    "state_update_old": "a6e914fc7f49c91809e508fcc8f9bee7f99f924f1917902d7842ea3b7965f86d",
+    "storage_phase": {
+        "fees_collected": 11,
+        "status_change": "acst_unchanged"
+    },
+    "success": true,
+    "total_fees": 396411,
+    "transaction_type": "TransOrd",
+    "utime": 1726919997
+}

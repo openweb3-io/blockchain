@@ -15,10 +15,11 @@ const (
 )
 
 var (
-	tonSendTx    tonapi.Transaction
-	tonRecvTx    tonapi.Transaction
-	jettonSendTx tonapi.Transaction
-	jettonRecvTx tonapi.Transaction
+	tonSendTx      tonapi.Transaction
+	tonRecvTx      tonapi.Transaction
+	jettonSendTx   tonapi.Transaction
+	jettonRecvTx   tonapi.Transaction
+	jettonExcessTx tonapi.Transaction
 )
 
 func init() {
@@ -26,6 +27,7 @@ func init() {
 	loadTransaction(filepath.Join(testDataDir, "ton_recv_tx.json"), &tonRecvTx)
 	loadTransaction(filepath.Join(testDataDir, "jetton_send_tx.json"), &jettonSendTx)
 	loadTransaction(filepath.Join(testDataDir, "jetton_recv_tx.json"), &jettonRecvTx)
+	loadTransaction(filepath.Join(testDataDir, "jetton_excess_tx.json"), &jettonExcessTx)
 }
 
 func loadTransaction(filename string, tx *tonapi.Transaction) {
@@ -63,6 +65,11 @@ func TestTransactionWrapper_GetInMsgHash(t *testing.T) {
 			name: "jetton recv tx",
 			tx:   jettonRecvTx,
 			want: "4fd7b0ffdb201d59a0de818eaf2485c7c61f715f6efeb07705b0084ef9288186",
+		},
+		{
+			name: "jetton excess tx",
+			tx:   jettonExcessTx,
+			want: "83dcd63232da740e5d550959f4c044d2292cf082919f17ff5e20d20747e62379",
 		},
 	}
 
@@ -109,6 +116,11 @@ func TestTransactionWrapper_GetComment(t *testing.T) {
 			tx:   jettonRecvTx,
 			want: "51f1a80b-203a-4050-a38f-128bf7e98ae3",
 		},
+		{
+			name: "jetton excess tx",
+			tx:   jettonExcessTx,
+			want: "",
+		},
 	}
 
 	for _, tt := range tests {
@@ -149,6 +161,11 @@ func TestTransactionWrapper_GetAmount(t *testing.T) {
 			name: "jetton recv tx",
 			tx:   jettonRecvTx,
 			want: "100000",
+		},
+		{
+			name: "jetton excess tx",
+			tx:   jettonExcessTx,
+			want: "36784810",
 		},
 	}
 
@@ -204,6 +221,15 @@ func TestTransactionWrapper_GetFromToAddress(t *testing.T) {
 			want: ton.TxAddresses{
 				From:   "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF",
 				To:     "EQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspojTy",
+				Jetton: "EQBqS6Y0MOliVqcANi5IffdqLCsq7sWCLDSfvHZj58yXnCi9",
+			},
+		},
+		{
+			name: "jetton excess tx",
+			tx:   jettonExcessTx,
+			want: ton.TxAddresses{
+				From:   "EQBqS6Y0MOliVqcANi5IffdqLCsq7sWCLDSfvHZj58yXnCi9",
+				To:     "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF",
 				Jetton: "EQBqS6Y0MOliVqcANi5IffdqLCsq7sWCLDSfvHZj58yXnCi9",
 			},
 		},

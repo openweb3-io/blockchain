@@ -12,6 +12,7 @@ const (
 	DecodedOpNameJettonTransfer = "jetton_transfer"
 	DecodedOpNameJettonNotify   = "jetton_notify"
 	DecodedOpNameTextComment    = "text_comment"
+	DecodedOpNameExcess         = "excess"
 
 	ForwardPayloadValueSumTypeTextComment = "TextComment"
 
