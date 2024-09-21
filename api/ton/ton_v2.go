@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/openweb3-io/blockchain/api"
-	"github.com/openweb3-io/blockchain/api/evm/contract"
+	"github.com/openweb3-io/blockchain/api/ton/contract"
 	"github.com/openweb3-io/blockchain/api/ton/wallet"
 	"github.com/openweb3-io/blockchain/api/types"
 	"github.com/tonkeeper/tonapi-go"

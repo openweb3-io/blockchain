@@ -389,3 +389,69 @@ func TestRunGetMethod(t *testing.T) {
 	fmt.Printf("所有者地址: %s\n", ownerAddr.MustLoadAddr().String())
 	fmt.Printf("Jetton主合约地址: %s\n", jettonMasterAddr.MustLoadAddr().String())
 }
+
+func TestGetWalletData(t *testing.T) {
+
+	// init logger
+	logger, _ := zap.NewDevelopment()
+
+	signerProvider := api.NewSignerProvider(api.WithFailoverSignerCreator(localSignerCreator))
+	token := os.Getenv("TON_TOKEN")
+	client, err := tonapi.New(tonapi.WithToken(token))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := liteclient.NewConnectionPool()
+	url := "https://api.tontech.io/ton/wallet-mainnet.autoconf.json"
+	err = c.AddConnectionsFromConfigUrl(context.Background(), url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lclient := _ton.NewAPIClient(tapi.WrapWithRetry(c, 10))
+
+	api := ton.NewTonApiV2(signerProvider, client, lclient, logger)
+
+	ctx := context.Background()
+	test := []struct {
+		name string
+		addr string
+		want types.WalletData
+	}{
+		{
+			name: "usdt1",
+			addr: "EQBVD5YT_S8_AR1VdOCuVFPaGB00t6p4y_LmmC2EHzDPofRH",
+			want: types.WalletData{
+				OwnerAddress:        "EQCYqk93_LQf4sDuTQk0yfmTpJARwvEv9eD2lHa5rYNmNZSF",
+				JettonMasterAddress: "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+				JettonTokenName:     "USDT",
+			},
+		},
+		{
+			name: "usdt2",
+			addr: "EQBqS6Y0MOliVqcANi5IffdqLCsq7sWCLDSfvHZj58yXnCi9",
+			want: types.WalletData{
+				OwnerAddress:        "EQCcoiXh-f3qjc2-QDjLh3XmwiNZmqRd2l5IX-_loNspojTy",
+				JettonMasterAddress: "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+				JettonTokenName:     "USDT",
+			},
+		},
+	}
+	for _, tt := range test {
+		t.Run(tt.name, func(t *testing.T) {
+			walletData, err := api.GetWalletData(ctx, tt.addr)
+			if err != nil {
+				t.Fatalf("GetWalletData failed: %v", err)
+			}
+			if walletData.OwnerAddress != tt.want.OwnerAddress {
+				t.Errorf("OwnerAddress = %v, want %v", walletData.OwnerAddress, tt.want.OwnerAddress)
+			}
+			if walletData.JettonMasterAddress != tt.want.JettonMasterAddress {
+				t.Errorf("JettonMasterAddress = %v, want %v", walletData.JettonMasterAddress, tt.want.JettonMasterAddress)
+			}
+			if walletData.JettonTokenName != tt.want.JettonTokenName {
+				t.Errorf("JettonTokenName = %v, want %v", walletData.JettonTokenName, tt.want.JettonTokenName)
+			}
+		})
+	}
+}

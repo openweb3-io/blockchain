@@ -1,7 +1,7 @@
 package contract
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/openweb3-io/blockchain/api/ton/contract/types"
 )
@@ -21,7 +21,7 @@ func Register(contract types.IContract) {
 func GetByAddress(address string) (types.IContract, error) {
 	contract, ok := knownContracts[address]
 	if !ok {
-		return nil, errors.New("unknown contract address")
+		return nil, fmt.Errorf("unknown contract address: %s", address)
 	}
 	return contract, nil
 }
