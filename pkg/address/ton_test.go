@@ -4,8 +4,8 @@ import (
 	"log"
 	"testing"
 
+	"github.com/openweb3-io/blockchain/pkg/address"
 	"github.com/stretchr/testify/require"
-	"openweb3.io/wallet-transfer-service/pkg/address"
 )
 
 func TestTonAddressParser(t *testing.T) {
