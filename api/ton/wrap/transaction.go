@@ -255,6 +255,10 @@ func (tx *TransactionWrapper) GetTxAddresses() (addresses TxAddresses, err error
 				jettonAddressRaw = inMsg.Source.Value.Address
 				toAddressRaw = inMsg.Destination.Value.Address
 				fromAddressRaw = payload.Sender
+			default:
+				zap.S().Error("not supported op_code, ignore", zap.String("op_code", inMsg.OpCode.Value))
+				err = fmt.Errorf("not supported op_code %s, ignore", inMsg.OpCode.Value)
+				return
 			}
 		}
 	}
